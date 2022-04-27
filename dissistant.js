@@ -1,91 +1,162 @@
-const { log } = require('./js/log.js');
-log('Starting')
+const { log } = require('./lib/log.js');
+log(' Start ', ' Starting')
 // Vars
 const delimiter = "\n" // | *NIX - \n | Windows - \n\r | MacOS X - \n | MacOS 9< - \r |
+const tmpdir = '/tmp';
+let closing = false;
+const app = {
+	py: {},
+	web: {},
+	dis: {},
+	};
+
 
 // Error Handler
-log('Setting Up Error Handling')
+log(' Start ', 'Setting Up Error Handling')
 process.on('uncaughtException', err => {
 	console.error(err);
-	process.exit(1);
-})
+	process.exit(1); });
 
 
 // Utils
-log('Setting Up Utilities')
+log(' Start ', 'Setting Up Utilities')
 const nodemon = require('nodemon');
 const fs = require('fs');
+const path = require('path');
 const colors = require('colors');
 const ConfigParser = require("configparser")
-const config = new ConfigParser();
-config.read('./config.ini');
+app.config = new ConfigParser();
+app.config.read('./config.ini');
 const readline = require('readline');
 readline.emitKeypressEvents(process.stdin);
 const pytalk = require('pytalk');
 
 
+// Web Panel
+log(' Panel ', 'Setting up Web Panel')
+
+//const AdminJS = require('adminjs');
+//const AdminJSExpress = require('@adminjs/express');
+//const express = require('express');
+//app.web.app = express()
+//app.web.adminjs = new AdminJS({
+//	Databases: [],
+//	rootPath: '/panel', });
+//app.web.router = AdminJSExpress.buildRouter(app.web.adminjs);
+//app.web.app.use(app.web.adminjs.options.rootPath, app.web.router);
+//app.web.app.listen(parseInt(app.config.get('Panel', 'port')), () => {
+//	log(' Panel ', `Web Panel Started on localhost:${app.config.get('Panel', 'port')}${app.web.adminjs.options.rootPath}`)});
+
+
 // Discord.JS
-log('Starting Discord Client');
-const { Client, Intents } = require('discord.js');
-const Voice = require('@discordjs/voice');
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
-client.once('ready', () => {
-	log('Discord Client Started'); });
+log('Discord', 'Starting Discord Client');
+const Discord = require('discord.js');
+app.dis = new Discord.Client({ intents: [
+		'GUILDS',
+		'GUILD_MEMBERS',
+		'GUILD_MESSAGES',
+		'GUILD_VOICE_STATES',
+	], });
+app.dis.vc = require('@discordjs/voice');
+app.dis.commands = new Discord.Collection();
+let commandFiles = fs.readdirSync('./commands')
+	.filter(file => file.endsWith('.js'));
+log('Discord', `Adding ${commandFiles.length} Commands`);
+for (let file of commandFiles) {
+	let command = require(`./commands/${file}`);
+	app.dis.commands.set(command.name, command);
+}
+app.dis.once('ready', () => {
+	log('Discord', 'Discord Client Started'); });
+
 
 //////////// Start AI Engines
 /// TTS
-const tts = {};
-tts.worker = pytalk.worker(__dirname+'/py/tts.py', {
-	stdout: data => {log(`TTS : ${data}`)}});
-tts.stop = tts.worker.methodSync('stop');
-tts.save_audio = tts.worker.methodSync('save_audio');
-tts.test = tts.worker.methodSync('test');
+app.py.tts = {};
+app.py.tts.worker = pytalk.worker(__dirname+'/py/tts.py', {
+	stdout: data => {log('  TTS  ', data)}});
+app.py.tts.stop = app.py.tts.worker.methodSync('stop');
+app.py.tts.save_audio = app.py.tts.worker.methodSync('save_audio');
 /// STT
-//const stt = new PythonShell('./py/stt.py'); d
+//const stt = new PythonShell('./py/stt.py');
 //stt.on('message', function(message) { log(message); });
+
 /// NLP
 /// OpenCV / Face Recognition
 
+
 // Event Handlers
-log('Initializing Event Handlers')
+log('  App  ',  'Initializing Event Handlers')
 process.stdin.on('keypress', (str, key) => {
 	if(key.name === 'q') exit(0);
 });
-
-
-// Exit
-function exit(code) {
-	log('Exiting')
-	// // Close Python Threads
-	log('Shutting Down Python Threads');
-	// TTS
-	log('Stopping TTS');
-	tts.stop()
-	log('TTS Stopped, Closing Process');
-	tts.worker.unrefAll();
-	tts.worker.close();
-	log('TTS Closed');
-	// // Close any File Handles
-
-	// // Done
-	log('Done');
-	nodemon.emit('quit');
-	process.exit(code);
-}
-process.on('exit', (code) => { exit(code); });
-process.on('SIGINT', () => { exit(0); });
+process.on('exit', (code) => { if(!closing) exit(code); });
+process.on('SIGINT', () => { if(!closing) exit(0); });
 
 
 // Ready
 
+// Discord Message
+app.dis.on('messageCreate', (message) => {
+	// Prefix
+	let prefix = app.config.get('Discord', 'prefix');
+	// Conditionals
+	if(!message.content.startsWith(prefix)) return;
+	//if(message.author.bot) return;
+	if(message.channel.type === 'dm') return;
 
+	let args = message.content.slice(prefix.length).trim().split(/ +/);
+	let command = args.shift().toLowerCase();
 
-//
+	log(' Debug ', 'Args : '+args)
+	log(' Debug ', 'Com  : '+command)
+	log(' Debug ', 'User : '+ message.author.username+"#"+message.author.discriminator)
+	log(' Debug ', 'MCon : '+message.content)
+	log(' Debug ', 'Auth : '+JSON.stringify(message.member))
+	log(' Debug ', 'UVC  : '+JSON.stringify(message.member.voice))
 
+	if (!app.dis.commands.get(command)) {
+		message.channel.send('Unknown Command');
+		return;
+	}
+	try {
+		app.dis.commands.get(command).execute(app, message, args);
+	} catch (err) {
+		message.channel.send('Command Error');
+		message.channel.send("\`\`\`\n"+err+'\n'+err.trace+"\n\`\`\`");
+		console.error(err); }
+});
 
 
 
 
 // Discord Login
-client.login(config.get("Discord", "token"))
-	.then(() => { log('Discord Client Logged In'); });
+app.dis.login(app.config.get("Discord", "token"))
+	.then(() => { log('Discord', 'Discord Client Logged In'); });
+
+// Exit
+function exit(code) {
+	log(' Stop  ', 'Exiting')
+	// // // Close Python Threads
+	log(' Stop  ', 'Shutting Down Python Threads');
+	// // TTS
+	//log(' Stop  ', '	Stopping TTS');
+	//tts.stop();
+	log(' Stop  ', 'TTS Stopped, Closing Process');
+	app.py.tts.worker.close();
+	log(' Stop  ', 'TTS Closed');
+	// // Close any File Handles
+
+	// Flush tmp
+	log(' Stop  ', 'Flushing ./tmp');
+	fs.readdir('./tmp', (err, files) => {
+		if (err) throw err;
+		log(' Stop  ', `Removing ${files.length} file(s)`);
+		for(let file of files) {
+			fs.unlink(path.join('./tmp/', file), err => {
+				if (err) throw err; });}});
+	// // Done
+	log(' Stop  ', 'Done');
+	closing = true;
+	process.exit(code);
+}

@@ -21,6 +21,13 @@ It can
 <br>
 ---
 ### How Does it Work?
+Node is used for the front end with Discord.JS being the Discord library. An updated PyTalk Node module is used to start and interface with Python threads. All AI is running in Python. 
+
+<br>
+---
+### Todo
+- [ ] Docker Support
+
 
 <br>
 ---
@@ -46,6 +53,7 @@ pip
 - OpenCV
 - DLib
 - Face Recognition
+- Custom PyTalk `https://github.com/Killian-Townsend/pytalk`
 
 npm
 - All packages are included in `package.json`
@@ -57,19 +65,10 @@ npm
 
 <br>
 ---
-### OS Specifics
-Dissistant was written with Ubuntu 20.04 in mind
-Non Debian-based distros may need slight tweaking 
-Most things should work correctly on Mac OS X since OSX is very similar architecturally 
-Windows is uncertain
-
-Windows 
-- Change delimiter in `index.js` to `\r\n`
-- Changing some file paths may be needed
-
-MacOS 9 and Older
-- Change delimiter in `index.js` to `\r` 
-
+### OS Support
+Linux, specifically Debian-based distros<br>
+For Windows, use WSL2 or something
+Mac, wait until Docker idk
 
 <br>
 ---

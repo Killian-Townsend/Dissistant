@@ -4,7 +4,7 @@
 __version__ = '0.0.1-DEV'
 __licence__ = 'MIT'
 __author__ = __maintainer__ = 'KP9982'
-__email__ = 'oasisscript87@gmail.com'
+__email__ = 'oasisscript87@gmail.commands'
 __release__ = False
 
 if not __release__:
