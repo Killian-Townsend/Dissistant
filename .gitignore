@@ -1,1 +1,4 @@
-./config.ini
+config.ini
+*.swp
+tmp/*
+node_modules
