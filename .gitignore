@@ -2,3 +2,6 @@ config.ini
 *.swp
 tmp/*
 node_modules
+.adminjs
+.idea
+__pycache__
