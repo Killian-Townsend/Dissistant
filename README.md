@@ -1,6 +1,7 @@
 # Dissistant
-
 <br>
+
+
 ---
 ### About
 Dissistant is a Discord assistant.
@@ -16,20 +17,21 @@ It can
 - [ ]  Alert you of Reddit, YouTube, Twitter, and Twitch posts
 - [ ]  Play simple games
 - [ ]  And more!
-
-
 <br>
+
+
 ---
 ### How Does it Work?
 Node is used for the front end with Discord.JS being the Discord library. An updated PyTalk Node module is used to start and interface with Python threads. All AI is running in Python. 
-
 <br>
+
+
 ---
 ### Todo
 - [ ] Docker Support
-
-
 <br>
+
+
 ---
 ### Requirements
 - Node.JS ^17.9.0
@@ -39,9 +41,9 @@ Node is used for the front end with Discord.JS being the Discord library. An upd
 - 4 threads, 8GB RAM, and a nVidia GPU is recommended, 3GB of VRAM
 	- nVidia GPU's with CUDA are currently the best for AI
 	- 2GB of VRAM is the minimum, but even then, 800p images are pushing the limits
-
-
 <br>
+
+
 ---
 ### Packages
 pip
@@ -58,8 +60,9 @@ pip
 npm
 - All packages are included in `package.json`
 - Just run `npm install`
-
 <br>
+
+
 ---
 ### Setup 
 
@@ -69,8 +72,9 @@ npm
 Linux, specifically Debian-based distros<br>
 For Windows, use WSL2 or something
 Mac, wait until Docker idk
-
 <br>
+
+
 ---
 ### Potential Issues
 HTTP Server Cannot Start

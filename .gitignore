@@ -5,3 +5,5 @@ node_modules
 .adminjs
 .idea
 __pycache__
+.replit
+*.nix
