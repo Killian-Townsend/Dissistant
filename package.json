@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start-pm2": "pm2 start dissistant.js --name Dissistant --watch --time --exp-backoff-restart-delay=100 --node-args='--max-old-space-size=2048 --initial-heap-size=1024 --max-heap-size=2048'",
-    "start": "node dissistant.js --max-old-space-size=2048 --initial-heap-size=1024 --max-heap-size=2048"
+    "start": "nodemon dissistant.js"
   },
   "keywords": [
     "discord",
